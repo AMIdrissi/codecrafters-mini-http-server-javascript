@@ -3,10 +3,10 @@ const net = require("net");
 const checkPath = (path , socket) =>{
     if(path=="/"){ // this will give an array with the [method , path , HTTP -v]
         socket.write("HTTP/1.1 200 OK\r\n\r\n") // here you write the status for the HTTP request
-        console.log("good")
+        console.log("good");
     } else{
         socket.write("HTTP/1.1 404 NOT FOUND\r\n\r\n")
-        console.log("bad")
+        console.log("bad");
     }
 }
 
