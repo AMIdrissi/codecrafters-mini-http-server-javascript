@@ -1,22 +1,61 @@
 // Note : i did complicate it a little here 
 const net = require("net");
 
-const loopOnPath = (path ,socket) => {
+const parseHTTP = (request , socket) => {
+    const HTTP_Method=['CONNECT',
+    'DELETE',
+    'GET',   
+    'HEAD',    
+    'OPTIONS',   
+    'POST',   
+    'PUT',]
+
+    const HTTPreqElms = request.split(`\r\n`);
+    const req_Line = request.split(`\r\n`)[0]; 
+    let [method , path ,ver] = req_Line.split(" ");
+    let headers = new Map();
+
+    if (!HTTP_Method.includes(method)) { // verifie the type of the request
+        socket.write("HTTP/1.1 400 BAD REQUEST\r\n\r\n");
+        socket.end();
+        server.close();
+    }
+
+    for (let i = 1; i < HTTPreqElms.length; i++) {
+        if (HTTPreqElms[i]!=="") {
+            headers.set(String(HTTPreqElms[i].split(":")[0]).trim(),String(HTTPreqElms[i].split(":")[1]).trim());
+        }
+    }
+    return headers;
+}
+
+const loopOnPath = (path ,socket ,data) => {
     let temp = "";
     let word = "";
     let flag = 0 ;
     let counter = 0;
+    let headers = parseHTTP(data.toString(),socket);
 
+    //* simple / path
     if(path=="/"){ // this will give an array with the [method , path , HTTP -v]
         socket.write("HTTP/1.1 200 OK\r\n\r\n") // here you write the status for the HTTP request
         return word;
     }
 
+    //* path like /user-agent
+    for (const key of headers.keys()) {
+        if (path==='/'+key.toLowerCase()) {
+            word = headers.get(key);
+            return word;
+        }
+    }
+
+    //* for echo and general path (so far)
     for (let i = 0; i < path.length; i++) {
-        
         if (path[i]==="/") {
             counter++;
         }
+
         if(i===0 && path[i]!="/") {
             socket.write("HTTP/1.1 400 BAD REQUEST\r\n\r\n");
             return null;
@@ -44,10 +83,8 @@ const loopOnPath = (path ,socket) => {
     return word;
 }
 
-const parsePath = (path ,socket) => {
-
-    const str = loopOnPath(path,socket);
-    
+const writeHTTP = (path ,socket ,data) => {
+    const str = loopOnPath(path,socket,data);
     if (str && str!=="") {
         socket.write(`HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${str.length}\r\n\r\n${str}`)
     }
@@ -62,7 +99,7 @@ const server = net.createServer((socket) => { //this is an event based function 
     socket.on("data" , (data) => { // data here is the one containing all the infos about our HTTP request and headers
         socket.read(); // not sure what i should read here tbh 
         // like the exercice says the \r\n ends the status line and the 2ns \r\n signifies the end of the headers section (Response,Representation,General)
-        parsePath(data.toString().split("\r\n")[0].split(" ")[1] , socket);
+        writeHTTP(data.toString().split("\r\n")[0].split(" ")[1] , socket,data);
         socket.end();
     })
 });
