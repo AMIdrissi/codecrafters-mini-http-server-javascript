@@ -74,7 +74,7 @@ const loopOnPath = (path ,socket ,data) => {
             return null;
         }
 
-        if (i===path.length-1 && (flag===0 || flagPath===0)) {
+        if (i===path.length-1 && flag===0) {
             socket.write("HTTP/1.1 404 NOT FOUND\r\n\r\n");
             return null;
         }
