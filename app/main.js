@@ -1,6 +1,6 @@
 // Note : i did complicate it a little here 
 const net = require("net");
-const { listeners } = require("process");
+const fs = require("fs");
 
 const parseHTTP = (request , socket) => {
     const HTTP_Method=['CONNECT',
@@ -28,6 +28,18 @@ const parseHTTP = (request , socket) => {
         }
     }
     return headers;
+}
+
+const checkFileType = (path) => {
+    if (path.endsWith(".html")) 
+        return "text/html";
+    
+    else if (path.endsWith(".txt")){
+        return "text/plain";
+    }
+    else
+        return "application/octet-stream";
+    
 }
 
 const loopOnPath = (path ,socket ,data) => {
@@ -62,7 +74,7 @@ const loopOnPath = (path ,socket ,data) => {
             return null;
         }
 
-        if (i===path.length-1 && flag===0) {
+        if (i===path.length-1 && (flag===0 || flagPath===0)) {
             socket.write("HTTP/1.1 404 NOT FOUND\r\n\r\n");
             return null;
         }
@@ -71,9 +83,20 @@ const loopOnPath = (path ,socket ,data) => {
             if(temp.slice(1,)==="echo"){
                 flag=1;
                 continue;
-            } else{
-                socket.write("HTTP/1.1 404 NOT FOUND\r\n\r\n")
-                return null;
+            }
+            if(temp.slice(1,)==="files"){
+                const file = dir + path.replace(/^\/files\//g, "");
+                if (fs.existsSync(file)) {
+                    const fileCont = fs.readFileSync();
+                    socket.write(`HTTP/1.1 200 OK\r\nContent-Type: ${checkFileType(file)}\r\n
+                                Content-Length: ${new Blob([fileCont]).size}\r\n\r\n${fileCont}\r\n`,
+                    );
+                }
+                else {
+                    socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
+    
+                }
+                return word;
             }
         }
         if (flag===1) {
