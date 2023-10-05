@@ -2,6 +2,18 @@
 const net = require("net");
 const fs = require("fs");
 
+const fullPath = () => {
+    let dir = "./";
+    if (process.argv[2] == "--directory"){
+        dir = process.argv[3];
+    }
+    if (!dir.endsWith("/")) dir += "/";
+
+    return dir;
+}
+
+const dir = fullPath(); 
+
 const parseHTTP = (request , socket) => {
     const HTTP_Method=['CONNECT',
     'DELETE',
