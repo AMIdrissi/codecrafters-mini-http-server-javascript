@@ -33,7 +33,7 @@ const parseHTTP = (request , socket) => {
             headers.set(String(HTTPreqElms[i].split(":")[0]).trim(),String(HTTPreqElms[i].split(":")[1]).trim());
         }
     }
-    return headers;
+    return [headers , method];
 }
 
 const checkFileType = (path) => {
@@ -53,7 +53,7 @@ const loopOnPath = (path ,socket ,data) => {
     let word = "";
     let flag = 0 ;
     let counter = 0;
-    let headers = parseHTTP(data.toString(),socket);
+    let [headers,method] = parseHTTP(data.toString(),socket); 
 
     //* simple / path
     if(path=="/"){ // this will give an array with the [method , path , HTTP -v]
@@ -92,16 +92,21 @@ const loopOnPath = (path ,socket ,data) => {
             }
             if(temp.slice(1,)==="files"){
                 const file = dir + path.replace(/^\/files\//g, "");
-                if (fs.existsSync(file)) {
-                    const fileCont = fs.readFileSync(file);
-                    socket.write(`HTTP/1.1 200 OK\r\nContent-Type: ${checkFileType(file)}\r\nContent-Length: ${new Blob([fileCont]).size}\r\n\r\n${fileCont}\r\n`,
-                    );
+                if (method=="GET") {
+                    if (fs.existsSync(file)) {
+                        const fileCont = fs.readFileSync(file);
+                        socket.write(`HTTP/1.1 200 OK\r\nContent-Type: ${checkFileType(file)}\r\nContent-Length: ${new Blob([fileCont]).size}\r\n\r\n${fileCont}\r\n`,
+                        );
+                    }
+                    else {
+                        socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
+        
+                    }
+                    return word;
+                }else if(method="POST"){
+                    fs.writeFileSync(file , data.toString().split("\r\n\r\n")[1]);
+                    socket.write("HTTP/1.1 201 CREATED\r\n\r\n");
                 }
-                else {
-                    socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
-    
-                }
-                return word;
             }
         }
         if (flag===1) {
