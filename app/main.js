@@ -1,5 +1,6 @@
 // Note : i did complicate it a little here 
 const net = require("net");
+const { listeners } = require("process");
 
 const parseHTTP = (request , socket) => {
     const HTTP_Method=['CONNECT',
@@ -104,4 +105,5 @@ const server = net.createServer((socket) => { //this is an event based function 
     })
 });
 
-server.listen(4221, "localhost");
+const s = server.listen(4221, "localhost");
+s.on("listening" , () => {console.log("listening")})
