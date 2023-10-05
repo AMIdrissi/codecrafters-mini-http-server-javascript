@@ -94,8 +94,7 @@ const loopOnPath = (path ,socket ,data) => {
                 const file = dir + path.replace(/^\/files\//g, "");
                 if (fs.existsSync(file)) {
                     const fileCont = fs.readFileSync(file);
-                    socket.write(`HTTP/1.1 200 OK\r\nContent-Type: ${checkFileType(file)}\r\n
-                                Content-Length: ${new Blob([fileCont]).size}\r\n\r\n${fileCont}\r\n`,
+                    socket.write(`HTTP/1.1 200 OK\r\nContent-Type: ${checkFileType(file)}\r\nContent-Length: ${new Blob([fileCont]).size}\r\n\r\n${fileCont}\r\n`,
                     );
                 }
                 else {
