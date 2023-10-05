@@ -1,24 +1,12 @@
 // Note : i did complicate it a little here 
 const net = require("net");
 const fs = require("fs");
-const { argv } = require("process");
 
-const fullPath = () => {
-    let dir = "./";
-    let prev = "";
-
-    for (const arg of argv) {
-        if (prev == "--directory"){
-            dir = arg;
-        }
-        prev = arg;
+let dir = "./";
+    if (process.argv[2] == "--directory"){
+        dir = process.argv[3];
     }
-
-    if (!dir.endsWith("/")) dir += "/";
-    return dir;
-}
-
-const dir = fullPath(); 
+if (!dir.endsWith("/")) dir += "/";
 
 const parseHTTP = (request , socket) => {
     const HTTP_Method=['CONNECT',
@@ -105,7 +93,7 @@ const loopOnPath = (path ,socket ,data) => {
             if(temp.slice(1,)==="files"){
                 const file = dir + path.replace(/^\/files\//g, "");
                 if (fs.existsSync(file)) {
-                    const fileCont = fs.readFileSync();
+                    const fileCont = fs.readFileSync(file);
                     socket.write(`HTTP/1.1 200 OK\r\nContent-Type: ${checkFileType(file)}\r\n
                                 Content-Length: ${new Blob([fileCont]).size}\r\n\r\n${fileCont}\r\n`,
                     );
