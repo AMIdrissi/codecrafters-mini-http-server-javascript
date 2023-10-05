@@ -1,14 +1,20 @@
 // Note : i did complicate it a little here 
 const net = require("net");
 const fs = require("fs");
+const { argv } = require("process");
 
 const fullPath = () => {
     let dir = "./";
-    if (process.argv[2] == "--directory"){
-        dir = process.argv[3];
-    }
-    if (!dir.endsWith("/")) dir += "/";
+    let prev = "";
 
+    for (const arg of argv) {
+        if (prev == "--directory"){
+            dir = arg;
+        }
+        prev = arg;
+    }
+
+    if (!dir.endsWith("/")) dir += "/";
     return dir;
 }
 
